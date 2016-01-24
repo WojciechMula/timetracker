@@ -1,3 +1,11 @@
+class WrongOption(Exception):
+    def __init__(self, msg):
+        self.msg = msg
+
+    def __str__(self):
+        return self.msg
+
+
 class CommandLine:
 
     def __init__(self, argv):
@@ -10,7 +18,7 @@ class CommandLine:
 
         valid_commands = ("stop", "start", "status", "continue", "history")
         if argv[0] not in valid_commands:
-            raise ValueError("Invalid command '%s'" % argv[0])
+            raise WrongOption("Invalid command '%s'" % argv[0])
 
         self.command = argv[0]
 

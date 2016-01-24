@@ -1,6 +1,8 @@
+#!/usr/bin/env python
+
 import time
 
-from command_line import CommandLine
+from command_line import CommandLine, WrongOption
 from backend import Backend, NoActiveTask, TaskAlreadyActive
 
 TIME_FORMAT = '%H:%M:%S (%Y-%m-%d)'
@@ -17,7 +19,6 @@ def format_seconds(seconds):
         m = m % 60
         return '%d:%02d:%02d' % (h, m, s)
     
-
 
 class StatusDecorator:
     def __init__(self, status):
@@ -178,10 +179,14 @@ if __name__ == '__main__':
 
     from sys import argv
 
-    cmd = CommandLine(argv[1:])
-    bkn = Backend()
+    try:
+        cmd = CommandLine(argv[1:])
+        bkn = Backend()
 
-    bkn.init()
+        bkn.init()
 
-    app = Application(cmd, bkn)
-    app.run()
+        app = Application(cmd, bkn)
+        app.run()
+    except WrongOption as e:
+        print e
+      
