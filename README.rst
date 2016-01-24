@@ -13,6 +13,11 @@ Stop the active task::
 
     tracker stop
 
+Continue the last running task::
+
+    tracer start
+    tracer continue
+
 Show status::
 
     tracker
