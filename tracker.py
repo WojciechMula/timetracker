@@ -5,6 +5,20 @@ from backend import Backend, NoActiveTask, TaskAlreadyActive
 
 TIME_FORMAT = '%H:%M:%S (%Y-%m-%d)'
 
+def format_seconds(seconds):
+
+    s = seconds % 60
+    m = seconds / 60
+
+    if m < 60:
+        return '%d:%02d' % (m, s)
+    else:
+        h = m / 60
+        m = m % 60
+        return '%d:%02d:%02d' % (h, m, s)
+    
+
+
 class StatusDecorator:
     def __init__(self, status):
         self.status = status
@@ -20,23 +34,15 @@ class StatusDecorator:
 
 
     def get_start_time(self):
-
         return time.strftime(TIME_FORMAT, self.status.get_start_time())
 
 
     def get_timespan(self):
+        return format_seconds(self.status.get_timespan())
 
-        n = self.status.get_timespan()
 
-        s = n % 60
-        m = n / 60
-
-        if m < 60:
-            return '%d:%02d' % (m, s)
-        else:
-            h = m / 60
-            m = m % 60
-            return '%d:%02d:%02d' % (h, m, s)
+    def __getattr__(self, attr):
+        return getattr(self.status, attr)
 
 
 class Application:
@@ -60,6 +66,16 @@ class Application:
 
         elif cmd == "continue":
             self.handle_continue()
+
+        elif cmd == "history":
+
+            if self.cmdline.get_name() == "group":
+                self.handle_report()
+            else:
+                self.handle_history()
+
+        else:
+            raise ValueError("Unhandled command %s" % cmd)
 
 
     def handle_status(self):
@@ -92,7 +108,6 @@ class Application:
             print "Task %s is already running" % StatusDecorator(self.backend.get_status())
 
 
-
     def handle_stop(self):
         try:
             status = StatusDecorator(self.backend.stop())
@@ -114,6 +129,50 @@ class Application:
         except TaskAlreadyActive:
             print "Task %s is already running" % StatusDecorator(self.backend.get_status())
 
+
+    def handle_history(self):
+        
+        max_category, max_name, items = self.backend.history()
+
+        for item in items:
+            status = StatusDecorator(item)
+            
+            desc = "%*s:%*s - %8s" % (max_category, status.get_category(), max_name, status.get_name(), status.get_timespan()) 
+            
+            if status.is_running():
+                print desc, "(running)"
+            else:
+                print desc
+
+
+    def handle_report(self):
+        
+        max_category, max_name, items = self.backend.history()
+        sum = {}
+        running_key = None
+        for item in items:
+            key = item.get_category() + ":" + item.get_name()
+
+            sum[key] = sum.get(key, 0) + item.get_timespan()
+            if item.is_running():
+                assert running_key is None
+                running_key = key
+
+        for item in items:
+            status = StatusDecorator(item)
+            key = item.get_category() + ":" + item.get_name()
+            
+            try:
+                time = sum.pop(key)
+            except KeyError:
+                continue
+
+            desc = "%*s:%*s - %8s" % (max_category, status.get_category(), max_name, status.get_name(), format_seconds(time))
+            
+            if key == running_key:
+                print desc, "(running)"
+            else:
+                print desc
 
 if __name__ == '__main__':
 

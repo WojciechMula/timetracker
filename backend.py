@@ -141,6 +141,36 @@ class Backend:
         return (previous, self.get_status())
 
 
+    def history(self):
+
+        result = []
+
+        max_category = 0
+        max_name     = 0
+
+        for i in xrange(0, len(self.items), 2):
+            first = self.items[i]
+            try:
+                second = self.items[i+1]
+            except IndexError:
+                second = None
+
+            max_category = max(max_category, len(first.category))
+            max_name     = max(max_name, len(first.name))
+
+            if second:
+                assert first.category == second.category 
+                assert first.name == second.name 
+                assert first.is_running() == True
+                assert second.is_running() == False
+
+                result.append(Status(first.category, first.name, first.time, second.time))
+            else:
+                result.append(Status(first.category, first.name, first.time))
+                
+        return max_category, max_name, result
+
+
     def stop(self):
 
         if len(self.items):

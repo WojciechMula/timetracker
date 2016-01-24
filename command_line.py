@@ -8,7 +8,7 @@ class CommandLine:
             self.command = "status"
             return
 
-        valid_commands = ("stop", "start", "status", "continue")
+        valid_commands = ("stop", "start", "status", "continue", "history")
         if argv[0] not in valid_commands:
             raise ValueError("Invalid command '%s'" % argv[0])
 
