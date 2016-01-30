@@ -87,19 +87,25 @@ class Backend:
         self.file = 'registry'
         self.path = os.path.join(self.dir, self.file)
 
-        self.items = []
+        self.items = None
 
 
     def init(self):
+
+        if self.items is not None:
+            return
 
         if not os.path.exists(self.dir):
             os.makedirs(self.dir)
             self.git("init")
 
-        self.load()
+        self.__load()
+        assert self.items is not None
 
 
     def get_status(self):
+
+        self.init()
 
         if len(self.items):
 
@@ -120,6 +126,8 @@ class Backend:
 
 
     def start(self, category, name):
+
+        self.init()
 
         previous = None
 
@@ -143,6 +151,8 @@ class Backend:
 
 
     def history(self):
+
+        self.init()
 
         result = []
 
@@ -174,6 +184,8 @@ class Backend:
 
     def stop(self):
 
+        self.init()
+
         if len(self.items):
             last = self.items[-1]
             if last.is_running():
@@ -188,6 +200,8 @@ class Backend:
 
     def continue_last(self):
 
+        self.init()
+
         if len(self.items):
             last = self.items[-1]
             if last.is_running():
@@ -198,7 +212,8 @@ class Backend:
             raise ValueError("no tasks in the history")
 
 
-    def load(self):
+    def __load(self):
+        self.items = []
         if os.path.exists(self.path):
             with open(self.path, 'rt') as f:
                 for index, line in enumerate(f):
