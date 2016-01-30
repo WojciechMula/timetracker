@@ -59,6 +59,9 @@ class Application:
         elif cmd == "report":
             self.handle_report()
 
+        elif cmd == "config":
+            self.handle_config()
+
         else:
             raise ValueError("Unhandled command %s" % cmd)
 
@@ -116,17 +119,19 @@ class Application:
 
 
     def handle_history(self):
-        
         filter  = Filter()
         history = History(self.backend, filter, None)
         history.run()
 
 
     def handle_report(self):
-
-        filter  = Filter()
+        filter = Filter()
         report = Report(self.backend, filter)
         report.run()
+
+
+    def handle_config(self):
+        print "database location is %s" % self.backend.dir
         
 
 if __name__ == '__main__':
