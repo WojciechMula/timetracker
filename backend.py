@@ -168,7 +168,7 @@ class Backend:
             else:
                 result.append(Status(first.category, first.name, first.time))
                 
-        return max_category, max_name, result
+        return max_category, max_name, reversed(result)
 
 
     def stop(self):

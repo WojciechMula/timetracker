@@ -4,46 +4,30 @@ import time
 
 from command_line import CommandLine, WrongOption
 from backend import Backend, NoActiveTask, TaskAlreadyActive
+from history import History
+from utils import StatusDecorator, format_seconds
 
-TIME_FORMAT = '%H:%M:%S (%Y-%m-%d)'
+class Filter:
+    def __init__(self):
+        self.category = None
+        self.name     = None
+        self.min_date = None
+        self.max_date = None
 
-def format_seconds(seconds):
+    def match(self, item):
+        if self.category is not None and item.category != self.category:
+            return False
 
-    s = seconds % 60
-    m = seconds / 60
+        if self.name is not None and item.name != self.name:
+            return False
 
-    if m < 60:
-        return '%d:%02d' % (m, s)
-    else:
-        h = m / 60
-        m = m % 60
-        return '%d:%02d:%02d' % (h, m, s)
-    
+        if self.min_date is not None and item.name < self.min_date:
+            return False
 
-class StatusDecorator:
-    def __init__(self, status):
-        self.status = status
+        if self.max_date is not None and item.name < self.max_date:
+            return False
 
-    def __str__(self):
-        cat  = self.status.get_category()
-        name = self.status.get_name()
-
-        if cat:
-            return "'%s' (%s)" % (name, cat)
-        else:
-            return "'%s'" % name
-
-
-    def get_start_time(self):
-        return time.strftime(TIME_FORMAT, self.status.get_start_time())
-
-
-    def get_timespan(self):
-        return format_seconds(self.status.get_timespan())
-
-
-    def __getattr__(self, attr):
-        return getattr(self.status, attr)
+        return True       
 
 
 class Application:
@@ -133,17 +117,9 @@ class Application:
 
     def handle_history(self):
         
-        max_category, max_name, items = self.backend.history()
-
-        for item in items:
-            status = StatusDecorator(item)
-            
-            desc = "%*s:%*s - %8s" % (max_category, status.get_category(), max_name, status.get_name(), status.get_timespan()) 
-            
-            if status.is_running():
-                print desc, "(running)"
-            else:
-                print desc
+        filter  = Filter()
+        history = History(self.backend, filter, None)
+        history.run()
 
 
     def handle_report(self):
