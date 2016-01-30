@@ -5,6 +5,7 @@ import time
 from command_line import CommandLine, WrongOption
 from backend import Backend, NoActiveTask, TaskAlreadyActive
 from history import History
+from report import Report
 from utils import StatusDecorator, format_seconds
 
 class Filter:
@@ -53,11 +54,10 @@ class Application:
             self.handle_continue()
 
         elif cmd == "history":
+            self.handle_history()
 
-            if self.cmdline.get_name() == "group":
-                self.handle_report()
-            else:
-                self.handle_history()
+        elif cmd == "report":
+            self.handle_report()
 
         else:
             raise ValueError("Unhandled command %s" % cmd)
@@ -123,33 +123,11 @@ class Application:
 
 
     def handle_report(self):
+
+        filter  = Filter()
+        report = Report(self.backend, filter)
+        report.run()
         
-        max_category, max_name, items = self.backend.history()
-        sum = {}
-        running_key = None
-        for item in items:
-            key = item.get_category() + ":" + item.get_name()
-
-            sum[key] = sum.get(key, 0) + item.get_timespan()
-            if item.is_running():
-                assert running_key is None
-                running_key = key
-
-        for item in items:
-            status = StatusDecorator(item)
-            key = item.get_category() + ":" + item.get_name()
-            
-            try:
-                time = sum.pop(key)
-            except KeyError:
-                continue
-
-            desc = "%*s:%*s - %8s" % (max_category, status.get_category(), max_name, status.get_name(), format_seconds(time))
-            
-            if key == running_key:
-                print desc, "(running)"
-            else:
-                print desc
 
 if __name__ == '__main__':
 
