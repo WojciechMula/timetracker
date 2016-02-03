@@ -4,8 +4,13 @@ from command_line import *
 class CommandLineTest(unittest.TestCase):
 
     def test_command_start(self):
-        cl = CommandLine(["start", "name"])
+        cl = CommandLine(["name"])
         self.assertEqual(cl.get_command(), "start")
+        self.assertEqual(cl.get_name(),    "name")
+
+        cl = CommandLine(["--", "stop"])
+        self.assertEqual(cl.get_command(), "start")
+        self.assertEqual(cl.get_name(),    "stop")
 
     def test_command_stop(self):
         cl = CommandLine(["stop"])
@@ -22,17 +27,14 @@ class CommandLineTest(unittest.TestCase):
         cl = CommandLine(["continue"])
         self.assertEqual(cl.get_command(), "continue")
 
-        cl = CommandLine(["start"])
-        self.assertEqual(cl.get_command(), "continue")
-
     def test_command_name(self):
-        cl = CommandLine(["start", "name"])
+        cl = CommandLine(["name"])
         self.assertEqual(cl.get_name(), "name")
 
-        cl = CommandLine(["start", "   a   bit    longer  name  "])
+        cl = CommandLine(["   a   bit    longer  name  "])
         self.assertEqual(cl.get_name(), "a bit longer name")
 
-        cl = CommandLine(["start", "a", "bit", "longer", "name"])
+        cl = CommandLine(["a", "bit", "longer", "name"])
         self.assertEqual(cl.get_name(), "a bit longer name")
 
     def test_command_category(self):

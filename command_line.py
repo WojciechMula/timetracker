@@ -8,27 +8,31 @@ class WrongOption(Exception):
 
 class CommandLine:
 
-    def __init__(self, argv):
+    def __init__(self, arguments):
         self.category = ""
         self.name     = ""
+
+        argv = arguments[:]
 
         if len(argv) == 0:
             self.command = "status"
             return
 
-        valid_commands = ("stop", "start", "status", "continue", "history", "report", "config")
-        if argv[0] not in valid_commands:
-            raise WrongOption("Invalid command '%s'" % argv[0])
+        if argv[0] == '--':
+            self.command = "start"
+            del argv[0]
+        else:
+            valid_commands = ("stop", "status", "continue", "history", "report", "config")
+            if argv[0] in valid_commands:
+                self.command = argv[0]
+                del argv[0]
+            else:
+                self.command = "start"
 
-        self.command = argv[0]
-
-        if len(argv) == 1:
-            if self.command == "start":
-                self.command = "continue"
-
+        if len(argv) == 0:
             return
 
-        tmp = ' '.join(argv[1:])
+        tmp = ' '.join(argv)
 
         def normalize(s):
             return ' '.join(s.split())
