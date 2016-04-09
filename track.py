@@ -120,7 +120,8 @@ class Application:
 
     def handle_history(self):
         filter  = Filter()
-        history = History(self.backend, filter, None)
+        maxdays = 5
+        history = History(self.backend, filter, maxdays)
         history.run()
 
 
