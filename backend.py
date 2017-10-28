@@ -82,8 +82,8 @@ class Status:
 
 class IOInterface:
 
-    def __init__(self):
-        self.dir  = os.path.expanduser('~/.local/tracker')
+    def __init__(self, directory):
+        self.dir  = directory
         self.file = 'registry'
         self.path = os.path.join(self.dir, self.file)
 
@@ -131,11 +131,12 @@ class IOInterface:
         if self.__initialized:
             return
 
-        if os.path.exists(self.dir):
-            return
+        if not os.path.exists(self.dir):
+            os.makedirs(self.dir)
 
-        os.makedirs(self.dir)
-        self.__git("init")
+        if not os.path.exists(os.path.join(self.dir, '.git')):
+            self.__git("init")
+
         self.__initialized = True
 
 
@@ -151,10 +152,10 @@ class IOInterface:
 
 
     def __execute(self, command):
-        return
         ret = os.system(command)
         if ret != 0:
             raise ValueError("Command '%s' returned non-zero %d status" % (command, ret))
+
 
     def __git(self, params):
         self.__execute('git --git-dir=%s --work-tree=%s %s > /dev/null' % (
@@ -166,8 +167,8 @@ class IOInterface:
 
 class Backend:
 
-    def __init__(self):
-        self.io = IOInterface()
+    def __init__(self, directory):
+        self.io = IOInterface(directory)
 
 
     def get_status(self):

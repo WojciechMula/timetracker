@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 
 import time
+import os
 
 from command_line import CommandLine, WrongOption
 from backend import Backend, NoActiveTask, TaskAlreadyActive
@@ -141,7 +142,7 @@ if __name__ == '__main__':
 
     try:
         cmd = CommandLine(argv[1:])
-        bkn = Backend()
+        bkn = Backend(os.path.expanduser('~/.local/tracker'))
 
         app = Application(cmd, bkn)
         app.run()
