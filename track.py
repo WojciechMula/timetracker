@@ -143,8 +143,6 @@ if __name__ == '__main__':
         cmd = CommandLine(argv[1:])
         bkn = Backend()
 
-        bkn.init()
-
         app = Application(cmd, bkn)
         app.run()
     except WrongOption as e:

@@ -80,89 +80,149 @@ class Status:
         return t2 - t1
 
 
-class Backend:
+class IOInterface:
 
     def __init__(self):
         self.dir  = os.path.expanduser('~/.local/tracker')
         self.file = 'registry'
         self.path = os.path.join(self.dir, self.file)
 
-        self.items = None
+        self.__initialized = False
+        self.__pending = []
+        self.__items = None
 
 
-    def init(self):
+    def get_items(self):
+        self.__initialize()
+        self.__load_all()
 
-        if self.items is not None:
+        return self.__items
+
+
+    def get_last(self):
+        try:
+            return self.get_items()[-1]
+        except IndexError:
             return
 
-        if not os.path.exists(self.dir):
-            os.makedirs(self.dir)
-            self.git("init")
 
-        self.__load()
-        assert self.items is not None
+    def append(self, item):
+        self.__pending.append(item)
+
+
+    def commit(self):
+        if len(self.__pending) == 0:
+            return
+
+        with open(self.path, 'at') as f:
+            for item in self.__pending:
+                f.write(str(item))
+                f.write('\n')
+
+        self.__git("add %s" % self.path)
+        self.__git('commit -m "%s"' % "update")
+
+        if self.__items is not None:
+            self.__items.extend(self.__pending)
+            self.__pending = []
+
+
+    def __initialize(self):
+        if self.__initialized:
+            return
+
+        if os.path.exists(self.dir):
+            return
+
+        os.makedirs(self.dir)
+        self.__git("init")
+        self.__initialized = True
+
+
+    def __load_all(self):
+        if self.__items is not None:
+            return
+
+        self.__items = []
+        if os.path.exists(self.path):
+            with open(self.path, 'rt') as f:
+                for index, line in enumerate(f):
+                    self.__items.append(Item.fromstr(line))
+
+
+    def __execute(self, command):
+        return
+        ret = os.system(command)
+        if ret != 0:
+            raise ValueError("Command '%s' returned non-zero %d status" % (command, ret))
+
+    def __git(self, params):
+        self.__execute('git --git-dir=%s --work-tree=%s %s > /dev/null' % (
+            os.path.join(self.dir, '.git'),
+            self.dir,
+            params
+        ));
+
+
+class Backend:
+
+    def __init__(self):
+        self.io = IOInterface()
 
 
     def get_status(self):
 
-        self.init()
-
-        if len(self.items):
-
-            last = self.items[-1]
-            if last.is_running():
-
-                return Status(last.category, last.name, last.time)
-            else:
-
-                prev = self.items[-2]
-                assert prev.is_running() == True
-                assert last.category == prev.category
-                assert last.name == prev.name
-
-                return Status(last.category, last.name, prev.time, last.time)
-        else:
+        last = self.io.get_last()
+        if last is None:
             return None
+
+        if last.is_running():
+            return Status(last.category, last.name, last.time)
+
+        items = self.io.get_items()
+
+        prev = items[-2]
+        assert prev.is_running() == True
+        assert last.category == prev.category
+        assert last.name == prev.name
+
+        return Status(last.category, last.name, prev.time, last.time)
 
 
     def start(self, category, name):
 
-        self.init()
-
         previous = None
+        last = self.io.get_last()
 
-        if len(self.items):
-            last = self.items[-1]
-            if last.is_running():
-                if category == last.category and name == last.name:
-                    raise TaskAlreadyActive()
+        if last and last.is_running():
+            if category == last.category and name == last.name:
+                raise TaskAlreadyActive()
 
-                item = Item(last.category, last.name, 'stop', time.localtime())
-                self.items.append(item)
+            item = Item(last.category, last.name, 'stop', time.localtime())
+            self.io.append(item)
 
-                previous = self.get_status()
+            previous = self.get_status()
 
         item = Item(category, name, 'start', time.localtime())
-        self.items.append(item)
-
-        self.save()
+        self.io.append(item)
+        self.io.commit()
 
         return (previous, self.get_status())
 
 
     def history(self):
 
-        self.init()
+        items = self.io.get_items()
 
         result = []
 
         max_category = 0
         max_name     = 0
 
-        for i in xrange(0, len(self.items), 2):
-            first = self.items[i]
+        for i in xrange(0, len(items), 2):
+            first = items[i]
             try:
-                second = self.items[i+1]
+                second = items[i+1]
             except IndexError:
                 second = None
 
@@ -170,76 +230,40 @@ class Backend:
             max_name     = max(max_name, len(first.name))
 
             if second:
-                assert first.category == second.category 
-                assert first.name == second.name 
+                assert first.category == second.category
+                assert first.name == second.name
                 assert first.is_running() == True
                 assert second.is_running() == False
 
                 result.append(Status(first.category, first.name, first.time, second.time))
             else:
                 result.append(Status(first.category, first.name, first.time))
-                
+
         return max_category, max_name, reversed(result)
 
 
     def stop(self):
 
-        self.init()
+        last = self.io.get_last()
 
-        if len(self.items):
-            last = self.items[-1]
-            if last.is_running():
-                item = Item(last.category, last.name, 'stop', time.localtime())
-                self.items.append(item)
+        if last and last.is_running():
+            item = Item(last.category, last.name, 'stop', time.localtime())
 
-                self.save()
-                return self.get_status()
+            self.io.append(item)
+            self.io.commit()
+            return self.get_status()
 
         raise NoActiveTask()
 
 
+
     def continue_last(self):
 
-        self.init()
-
-        if len(self.items):
-            last = self.items[-1]
-            if last.is_running():
-                raise TaskAlreadyActive()
-            else:
-                return self.start(last.category, last.name)[1]
-        else:
+        last = self.io.get_last()
+        if last is None:
             raise ValueError("no tasks in the history")
 
-
-    def __load(self):
-        self.items = []
-        if os.path.exists(self.path):
-            with open(self.path, 'rt') as f:
-                for index, line in enumerate(f):
-                    self.items.append(Item.fromstr(line))
-
-    def save(self):
-        tmp = os.path.join(self.dir, 'tmp')
-        with open(tmp, 'wt') as f:
-            for item in self.items:
-                f.write(str(item))
-                f.write('\n')
-
-        os.rename(tmp, self.path)
-        self.git("add %s" % self.path)
-        self.git('commit -m "%s"' % "update")
-
-    def __execute(self, command):
-
-        ret = os.system(command)
-        if ret != 0:
-            raise ValueError("Command '%s' returned non-zero %d status" % (command, ret))
-
-    def git(self, params):
-        self.__execute('git --git-dir=%s --work-tree=%s %s > /dev/null' % (
-            os.path.join(self.dir, '.git'),
-            self.dir,
-            params
-        ));
-
+        if last.is_running():
+            raise TaskAlreadyActive()
+        else:
+            return self.start(last.category, last.name)[1]
