@@ -5,10 +5,10 @@ from time import strptime, strftime
 
 TIME_FORMAT = '%Y-%m-%d %H:%M:%S'
 
-class NoActiveTask:
+class NoActiveTask(Exception):
     pass
 
-class TaskAlreadyActive:
+class TaskAlreadyActive(Exception):
     pass
 
 class Item:
@@ -220,7 +220,7 @@ class Backend:
         max_category = 0
         max_name     = 0
 
-        for i in xrange(0, len(items), 2):
+        for i in range(0, len(items), 2):
             first = items[i]
             try:
                 second = items[i+1]

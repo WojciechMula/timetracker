@@ -29,9 +29,9 @@ class Test(unittest.TestCase):
         backend = self.get_backend()
         max_category, max_name, result = backend.history()
 
-        self.assertEquals(0, max_category)
-        self.assertEquals(0, max_name)
-        self.assertEquals(0, len(list(result)))
+        self.assertEqual(0, max_category)
+        self.assertEqual(0, max_name)
+        self.assertEqual(0, len(list(result)))
 
 
     def test_start_on_empty_repository(self):
@@ -41,9 +41,9 @@ class Test(unittest.TestCase):
         max_category, max_name, result = backend.history()
         result = list(result)[0]
 
-        self.assertEquals('category', result.get_category())
-        self.assertEquals('task',     result.get_name())
-        self.assertEquals(result.get_start_time(), result.get_end_time())
+        self.assertEqual('category', result.get_category())
+        self.assertEqual('task',     result.get_name())
+        self.assertEqual(result.get_start_time(), result.get_end_time())
 
 
     def test_start_the_same_task_again(self):
@@ -83,11 +83,11 @@ class Test(unittest.TestCase):
         max_category, max_name, result = backend.history()
         result = list(result)
 
-        self.assertEquals(2, len(result))
-        self.assertEquals('category2', result[0].get_category())
-        self.assertEquals('task2',     result[0].get_name())
-        self.assertEquals('category',  result[1].get_category())
-        self.assertEquals('task',      result[1].get_name())
+        self.assertEqual(2, len(result))
+        self.assertEqual('category2', result[0].get_category())
+        self.assertEqual('task2',     result[0].get_name())
+        self.assertEqual('category',  result[1].get_category())
+        self.assertEqual('task',      result[1].get_name())
 
 
     def test_continue(self):
@@ -100,8 +100,8 @@ class Test(unittest.TestCase):
         max_category, max_name, result = backend.history()
         result = list(result)[0]
 
-        self.assertEquals('category2', result.get_category())
-        self.assertEquals('task2',     result.get_name())
+        self.assertEqual('category2', result.get_category())
+        self.assertEqual('task2',     result.get_name())
 
 
 if __name__ == '__main__':

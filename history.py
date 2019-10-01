@@ -31,7 +31,7 @@ class History:
                 if self.max_days is not None and days == self.max_days:
                     break
 
-                print date
+                print(date)
                 prev_date = date
 
             
@@ -53,15 +53,15 @@ class History:
         )
 
         if status.is_running():
-            print desc, "(running)"
+            print(desc, "(running)")
         else:
-            print desc
+            print(desc)
 
 
     def print_total(self):
         if self.total_count > 1:
             indent = self.max_category + self.max_name + 14
-            print "%*s total" % (indent, format_seconds(self.total_time))
+            print("%*s total" % (indent, format_seconds(self.total_time)))
 
         self.total_time  = 0.0
         self.total_count = 0

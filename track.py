@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 
 import time
 import os
@@ -76,9 +76,9 @@ class Application:
                 status.get_timespan(),
                 status.get_start_time()
             )
-            print "Task %s is running for %s (started at %s)" % param
+            print("Task %s is running for %s (started at %s)" % param)
         else:
-            print "No task active"
+            print("No task active")
 
 
     def handle_start(self):
@@ -88,35 +88,35 @@ class Application:
 
             if previous:
                 previous = StatusDecorator(previous)
-                print "Stopped task %s after %s" % (previous, previous.get_timespan())
+                print("Stopped task %s after %s" % (previous, previous.get_timespan()))
 
             status = StatusDecorator(status)
-            print "Task %s has started at %s" % (status, status.get_start_time())
+            print("Task %s has started at %s" % (status, status.get_start_time()))
 
         except TaskAlreadyActive:
-            print "Task %s is already running" % StatusDecorator(self.backend.get_status())
+            print("Task %s is already running" % StatusDecorator(self.backend.get_status()))
 
 
     def handle_stop(self):
         try:
             status = StatusDecorator(self.backend.stop())
 
-            print "Task %s was stopped. It lasted for %s since %s" % (
+            print("Task %s was stopped. It lasted for %s since %s" % (
                 status,
                 status.get_timespan(),
                 status.get_start_time()
-            )
+            ))
         except NoActiveTask:
-            print "No active task"
+            print("No active task")
 
 
     def handle_continue(self):
         try:
             status = StatusDecorator(self.backend.continue_last())
 
-            print "Continuing task %s" % status
+            print("Continuing task %s" % status)
         except TaskAlreadyActive:
-            print "Task %s is already running" % StatusDecorator(self.backend.get_status())
+            print("Task %s is already running" % StatusDecorator(self.backend.get_status()))
 
 
     def handle_history(self):
@@ -133,7 +133,7 @@ class Application:
 
 
     def handle_config(self):
-        print "database location is %s" % self.backend.dir
+        print("database location is %s" % self.backend.dir)
         
 
 if __name__ == '__main__':
@@ -147,5 +147,5 @@ if __name__ == '__main__':
         app = Application(cmd, bkn)
         app.run()
     except WrongOption as e:
-        print e
+        print(e)
       

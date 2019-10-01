@@ -32,6 +32,6 @@ class Report:
             desc = "%*s:%*s - %8s" % (max_category, status.get_category(), max_name, status.get_name(), format_seconds(time))
             
             if key == running_key:
-                print desc, "(running)"
+                print(desc, "(running)")
             else:
-                print desc
+                print(desc)
