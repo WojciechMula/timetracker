@@ -1,50 +1,35 @@
-class WrongOption(Exception):
-    def __init__(self, msg):
-        self.msg = msg
-
-    def __str__(self):
-        return self.msg
-
+import argparse
 
 class CommandLine:
-
     def __init__(self, arguments):
-        self.category = ""
-        self.name     = ""
+        valid_choices = ("start", "stop", "status", "continue", "history", "report", "config")
+        ap = argparse.ArgumentParser(description="Track you activity")
+        ap.add_argument("command",
+                        metavar="COMMAND",
+                        choices=valid_choices,
+                        help="%s" % (', '.join(valid_choices)))
+        ap.add_argument("name",
+                        metavar="NAME",
+                        nargs='*',
+                        help="name of task")
 
-        argv = arguments[:]
-
-        if len(argv) == 0:
-            self.command = "status"
-            return
-
-        if argv[0] == '--':
-            self.command = "start"
-            del argv[0]
+        args = ap.parse_args(arguments)
+        if args.command == 'start':
+            if not args.name:
+                ap.error("name of task is required")
         else:
-            valid_commands = ("stop", "status", "continue", "history", "report", "config")
-            if argv[0] in valid_commands:
-                self.command = argv[0]
-                del argv[0]
-            else:
-                self.command = "start"
+            if args.name:
+                ap.error("given command does not require any name")
 
-        if len(argv) == 0:
-            return
+        tmp = ' '.join(args.name)
 
-        tmp = ' '.join(argv)
-
-        def normalize(s):
-            return ' '.join(s.split())
-
+        self.command  = args.command
         try:
-            category, name = tmp.split(':', 1)
-
-            self.category = normalize(category)
-            self.name = normalize(name)
+            self.category, self.name = tmp.split(':', 1)
         except ValueError:
             self.category = ""
-            self.name = normalize(tmp)
+            self.name     = tmp
+
 
     def get_command(self):
         return self.command

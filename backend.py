@@ -166,9 +166,13 @@ class IOInterface:
 
 
 class Backend:
-
     def __init__(self, directory):
         self.io = IOInterface(directory)
+
+
+    @property
+    def dir(self):
+        return self.io.dir
 
 
     def get_status(self):
@@ -257,9 +261,7 @@ class Backend:
         raise NoActiveTask()
 
 
-
     def continue_last(self):
-
         last = self.io.get_last()
         if last is None:
             raise ValueError("no tasks in the history")
