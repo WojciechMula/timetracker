@@ -1,6 +1,13 @@
 from utils import StatusDecorator, format_seconds
 import time
 
+class Record:
+    def __init__(self, category, name):
+        self.category = category
+        self.name = name
+        self.time = 0
+        self.running = False
+
 class Report:
     def __init__(self, backend, filter):
         self.backend  = backend
@@ -8,30 +15,31 @@ class Report:
 
     def run(self):
 
+        def get_key(item):
+            return item.get_category() + ":" + item.get_name()
+
         max_category, max_name, items = self.backend.history()
         items = [item for item in items if self.filter.match(item)]
-        sum = {}
-        running_key = None
+        data = {}
         for item in items:
-            key = item.get_category() + ":" + item.get_name()
+            key = get_key(item)
 
-            sum[key] = sum.get(key, 0) + item.get_timespan()
-            if item.is_running():
-                assert running_key is None
-                running_key = key
+            if key not in data:
+                record = Record(item.get_category(), item.get_name())
+                data[key] = record
+            else:
+                record = data[key]
 
-        for item in items:
-            status = StatusDecorator(item)
-            key = item.get_category() + ":" + item.get_name()
+            record.time += item.get_timespan()
+            record.running = record.running or item.is_running()
+
+        records = list(data.values())
+        records.sort(key=lambda rec: rec.time, reverse=True)
+
+        for record in records:
+            desc = "%*s:%*s - %12s" % (max_category, record.category, max_name, record.name, format_seconds(record.time))
             
-            try:
-                time = sum.pop(key)
-            except KeyError:
-                continue
-
-            desc = "%*s:%*s - %8s" % (max_category, status.get_category(), max_name, status.get_name(), format_seconds(time))
-            
-            if key == running_key:
+            if record.running:
                 print(desc, "(running)")
             else:
                 print(desc)
