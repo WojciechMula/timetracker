@@ -1,0 +1,1 @@
+complete -W "start stop status continue history report config" track 
