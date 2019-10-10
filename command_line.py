@@ -2,6 +2,10 @@ import argparse
 
 class CommandLine:
     def __init__(self, arguments):
+        if not arguments:
+            self.command = 'status'
+            return
+
         valid_choices = ("start", "stop", "status", "continue", "history", "report", "config")
         ap = argparse.ArgumentParser(description="Track you activity")
         ap.add_argument("command",
@@ -12,6 +16,7 @@ class CommandLine:
                         metavar="NAME",
                         nargs='*',
                         help="name of task")
+
 
         args = ap.parse_args(arguments)
         if args.command == 'start':

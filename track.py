@@ -78,7 +78,7 @@ class Application:
             )
             print("Task %s is running for %s (started at %s)" % param)
         else:
-            print("No task active")
+            print("No active task")
 
 
     def handle_start(self):
