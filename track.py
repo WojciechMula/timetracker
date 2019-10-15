@@ -63,6 +63,9 @@ class Application:
         elif cmd == "config":
             self.handle_config()
 
+        elif cmd == "last":
+            self.handle_last()
+
         else:
             raise ValueError("Unhandled command %s" % cmd)
 
@@ -134,7 +137,23 @@ class Application:
 
     def handle_config(self):
         print("database location is %s" % self.backend.dir)
+
+
+    def handle_last(self):
+        try:
+            last = self.backend.last()
+        except ValueError:
+            print("No previous task")
+        else:
+            if last.category:
+                name = '%s:%s' (last.category, last.name)
+            else:
+                name = last.name
         
+            if last.is_running():
+                print("Current task '%s'" % name)
+            else:
+                print("Last task '%s'" % name)
 
 if __name__ == '__main__':
 

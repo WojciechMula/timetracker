@@ -6,12 +6,12 @@ class CommandLine:
             self.command = 'status'
             return
 
-        valid_choices = ("start", "stop", "status", "continue", "history", "report", "config")
+        valid_choices = ("start", "stop", "status", "continue", "history", "report", "config", "last")
         ap = argparse.ArgumentParser(description="Track you activity")
         ap.add_argument("command",
                         metavar="COMMAND",
                         choices=valid_choices,
-                        help="%s" % (', '.join(valid_choices)))
+                        help="%s" % (', '.join(sorted(valid_choices))))
         ap.add_argument("name",
                         metavar="NAME",
                         nargs='*',

@@ -261,10 +261,16 @@ class Backend:
         raise NoActiveTask()
 
 
-    def continue_last(self):
+    def last(self):
         last = self.io.get_last()
         if last is None:
             raise ValueError("no tasks in the history")
+
+        return last
+
+
+    def continue_last(self):
+        last = self.last()
 
         if last.is_running():
             raise TaskAlreadyActive()
