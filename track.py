@@ -146,14 +146,14 @@ class Application:
             print("No previous task")
         else:
             if last.category:
-                name = '%s:%s' (last.category, last.name)
+                name = f'{last.category}:{last.name}'
             else:
                 name = last.name
         
             if last.is_running():
-                print("Current task '%s'" % name)
+                print(f"Current task '{name}'")
             else:
-                print("Last task '%s'" % name)
+                print(f"Last task '{name}'")
 
 if __name__ == '__main__':
 
