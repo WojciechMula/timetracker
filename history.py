@@ -9,6 +9,7 @@ class History:
 
         self.total_time  = 0.0
         self.total_count = 0
+        self.all_time = 0.0
 
     def run(self):
 
@@ -16,7 +17,6 @@ class History:
 
         prev_date = None
         days = -1
-
 
         for item in (item for item in items if self.filter.match(item)):
 
@@ -26,6 +26,8 @@ class History:
             if prev_date != date:
 
                 self.print_total()
+                self.total_time  = 0.0
+                self.total_count = 0
 
                 days += 1
                 if self.max_days is not None and days == self.max_days:
@@ -38,9 +40,12 @@ class History:
             self.print_item(status)
             self.total_count += 1
             self.total_time  += item.get_timespan()
+            self.all_time    += item.get_timespan()
             
 
         self.print_total()
+        indent = self.max_category + self.max_name + 14
+        print("%*s all" % (indent, format_seconds(self.all_time)))
 
 
     def print_item(self, status):
@@ -63,5 +68,3 @@ class History:
             indent = self.max_category + self.max_name + 14
             print("%*s total" % (indent, format_seconds(self.total_time)))
 
-        self.total_time  = 0.0
-        self.total_count = 0
