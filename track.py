@@ -9,37 +9,41 @@ from history import History
 from report import Report
 from utils import StatusDecorator, format_seconds
 
+
 class Filter:
-    def __init__(self):
-        self.category = None
-        self.name     = None
-        self.min_date = None
-        self.max_date = None
+    def __init__(self, category, name, year, month):
+        self.category = category
+        self.name     = name
+        self.year     = year
+        self.month    = month
 
     def match(self, item):
-        if self.category is not None and item.category != self.category:
-            return False
+        if self.category is not None:
+            if item.category != self.category:
+                return False
 
-        if self.name is not None and item.name != self.name:
-            return False
+        if self.name is not None:
+            if item.name != self.name:
+                return False
 
-        if self.min_date is not None and item.name < self.min_date:
-            return False
+        if self.year is not None:
+            if item.start.tm_year != self.year:
+                return False
 
-        if self.max_date is not None and item.name < self.max_date:
-            return False
+        if self.month is not None:
+            if item.start.tm_mon != self.month:
+                return False
 
         return True       
 
 
 class Application:
-
     def __init__(self, cmdline, backend):
         self.cmdline = cmdline
         self.backend = backend
 
-    def run(self):
 
+    def run(self):
         cmd = self.cmdline.get_command()
 
         if cmd == "status":
@@ -123,14 +127,16 @@ class Application:
 
 
     def handle_history(self):
-        filter  = Filter()
-        maxdays = 5
+        args = cmd.arguments
+        filter  = Filter(args.category, args.name, args.year, args.month)
+        maxdays = 365*10
         history = History(self.backend, filter, maxdays)
         history.run()
 
 
     def handle_report(self):
-        filter = Filter()
+        args = cmd.arguments
+        filter  = Filter(args.category, args.name, args.year, args.month)
         report = Report(self.backend, filter)
         report.run()
 
@@ -164,4 +170,3 @@ if __name__ == '__main__':
 
     app = Application(cmd, bkn)
     app.run()
-      
