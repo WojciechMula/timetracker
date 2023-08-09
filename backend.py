@@ -100,7 +100,19 @@ class IOInterface:
 
 
     def get_last(self):
+        if not os.path.exists(self.path):
+            return
+
+        with open(self.path, 'rb') as f:
+            f.seek(-1024, 2)
+            tail = f.read().decode('utf-8')
+            tmp = tail.split('\n')
+
+        if len(tmp) >= 3 and tmp[-1] == '':
+            return Item.fromstr(tmp[-2])
+
         try:
+            # fallback to slow procedure
             return self.get_items()[-1]
         except IndexError:
             return
@@ -176,7 +188,6 @@ class Backend:
 
 
     def get_status(self):
-
         last = self.io.get_last()
         if last is None:
             return None
